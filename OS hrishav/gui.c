@@ -4,7 +4,7 @@
 
 GtkWidget *entry; // Global variable to store the GtkEntry widget
 
-void button_clicked(GtkWidget *widget, gpointer data)
+void Custom_msg(GtkWidget *widget, gpointer data)
 {
     const gchar *message = gtk_entry_get_text(GTK_ENTRY(entry));
     g_print("Message to send: %s\n", message);
@@ -28,7 +28,7 @@ void button_clicked(GtkWidget *widget, gpointer data)
     close(fd);
 }
 
-void edit_button_clicked(GtkWidget *widget, gpointer data)
+void edit_handler(GtkWidget *widget, gpointer data)
 {
     // Clear the text entry field when Edit button is clicked
     gtk_entry_set_text(GTK_ENTRY(entry), "");
@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
     gtk_grid_attach(GTK_GRID(grid), entry, 0, 0, 2, 1);
 
     button = gtk_button_new_with_label("Send Message");
-    g_signal_connect(button, "clicked", G_CALLBACK(button_clicked), NULL);
+    g_signal_connect(button, "clicked", G_CALLBACK(Custom_msg), NULL);
     gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 1, 1);
 
     edit_button = gtk_button_new_with_label("Edit");
-    g_signal_connect(edit_button, "clicked", G_CALLBACK(edit_button_clicked), NULL);
+    g_signal_connect(edit_button, "clicked", G_CALLBACK(edit_handler), NULL);
     gtk_grid_attach(GTK_GRID(grid), edit_button, 1, 1, 1, 1);
 
     gtk_widget_show_all(window);

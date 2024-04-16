@@ -11,26 +11,23 @@ static struct input_dev *virt_keyboard_dev;
 
 static ssize_t virtual_keypad_write(struct file *file, const char *buffer, size_t length, loff_t *offset)
 {
-    char input[length + 1]; // Extra space for null terminator
+    char input[length + 1];
 
     if (copy_from_user(input, buffer, length) != 0)
     {
         return -EFAULT;
     }
-    input[length] = '\0'; // Ensure null-terminated string
+    input[length] = '\0';
 
-    // Simulate typing "hi" based on input
+    // Simulate typing based on input
     struct input_dev *dev = virt_keyboard_dev;
-    if (dev && length == 2 && input[0] == 'h' && input[1] == 'i')
+    int i;
+    for (i = 0; i < length; i++)
     {
-        input_event(dev, EV_KEY, KEY_H, 1); // Simulate press of key 'H'
-        input_sync(dev);                    // Send the input event
-        input_event(dev, EV_KEY, KEY_H, 0); // Simulate release of key 'H'
-        input_sync(dev);                    // Send the input event
-        input_event(dev, EV_KEY, KEY_I, 1); // Simulate press of key 'I'
-        input_sync(dev);                    // Send the input event
-        input_event(dev, EV_KEY, KEY_I, 0); // Simulate release of key 'I'
-        input_sync(dev);                    // Send the input event
+        input_event(dev, EV_KEY, input[i], 1); // Simulate press of the current character
+        input_sync(dev);                       // Send the input event
+        input_event(dev, EV_KEY, input[i], 0);
+        input_sync(dev);
     }
 
     return length;
@@ -64,8 +61,9 @@ static int __init virtual_keypad_init(void)
     virt_keyboard_dev->id.product = 0x0001;
     virt_keyboard_dev->id.version = 0x0100;
     set_bit(EV_KEY, virt_keyboard_dev->evbit);
-    set_bit(KEY_H, virt_keyboard_dev->keybit);
-    set_bit(KEY_I, virt_keyboard_dev->keybit);
+    set_bit(EV_REP, virt_keyboard_dev->evbit); // Enable key repetition
+    input_set_capability(virt_keyboard_dev, EV_KEY, KEY_MAX);
+    input_set_all_keycodes(virt_keyboard_dev, NULL);
 
     if (input_register_device(virt_keyboard_dev))
     {
