@@ -2,10 +2,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+GtkWidget *entry; // Global variable to store the GtkEntry widget
+
 void button_clicked(GtkWidget *widget, gpointer data)
 {
-    const gchar *button_label = gtk_button_get_label(GTK_BUTTON(widget));
-    g_print("Button clicked: %s\n", button_label);
+    const gchar *message = gtk_entry_get_text(GTK_ENTRY(entry));
+    g_print("Message to send: %s\n", message);
 
     // Open the device file for writing
     int fd = open("/dev/virtual_keypad", O_WRONLY);
@@ -15,8 +17,8 @@ void button_clicked(GtkWidget *widget, gpointer data)
         return;
     }
 
-    // Write the button label to the device file
-    ssize_t bytes_written = write(fd, button_label, strlen(button_label));
+    // Write the message to the device file
+    ssize_t bytes_written = write(fd, message, strlen(message));
     if (bytes_written < 0)
     {
         perror("Error writing to device file");
@@ -26,11 +28,18 @@ void button_clicked(GtkWidget *widget, gpointer data)
     close(fd);
 }
 
+void edit_button_clicked(GtkWidget *widget, gpointer data)
+{
+    // Clear the text entry field when Edit button is clicked
+    gtk_entry_set_text(GTK_ENTRY(entry), "");
+}
+
 int main(int argc, char *argv[])
 {
     GtkWidget *window;
     GtkWidget *grid;
     GtkWidget *button;
+    GtkWidget *edit_button;
 
     gtk_init(&argc, &argv);
 
@@ -42,13 +51,16 @@ int main(int argc, char *argv[])
     grid = gtk_grid_new();
     gtk_container_add(GTK_CONTAINER(window), grid);
 
-    button = gtk_button_new_with_label("Hello");
-    g_signal_connect(button, "clicked", G_CALLBACK(button_clicked), NULL);
-    gtk_grid_attach(GTK_GRID(grid), button, 0, 0, 1, 1);
+    entry = gtk_entry_new(); // Create an editable text entry field
+    gtk_grid_attach(GTK_GRID(grid), entry, 0, 0, 2, 1);
 
-    button = gtk_button_new_with_label("Hi");
+    button = gtk_button_new_with_label("Send Message");
     g_signal_connect(button, "clicked", G_CALLBACK(button_clicked), NULL);
-    gtk_grid_attach(GTK_GRID(grid), button, 1, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 1, 1);
+
+    edit_button = gtk_button_new_with_label("Edit");
+    g_signal_connect(edit_button, "clicked", G_CALLBACK(edit_button_clicked), NULL);
+    gtk_grid_attach(GTK_GRID(grid), edit_button, 1, 1, 1, 1);
 
     gtk_widget_show_all(window);
 
